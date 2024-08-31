@@ -170,4 +170,4 @@ export default controller;
 // const myCanvas = document.getElementById('myCanvas');
 // controller.init(myCanvas); // Initialize the controller with the canvas
 // controller.add(100, 100, 20, 'button', 'A');
-// controller.draw();//inside loop 
+// controller.draw();
