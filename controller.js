@@ -1,5 +1,6 @@
+// Button class definition
 class Button {
-    constructor(x = 100, y = 100, radius = 20, canvas, type = "button", text = "") {
+    constructor(x = 100, y = 100, radius = 20,canvas, type = "button", text = "") {
         this.x = x;
         this.y = y;
         this.r = radius;
@@ -12,9 +13,75 @@ class Button {
         this.id = null;
         this.direction = { dx: 0, dy: 0 };
         this.opacity = 0.8;
-        this.canvas = canvas;
-        this.context = this.canvas.getContext('2d');
     }
+
+    draw(context) {
+        if (!context) {
+            console.error("Context is undefined or null.");
+            return;
+        }
+
+        context.save();
+        context.globalAlpha = this.opacity;
+
+        if (this.type === 'button') {
+            context.beginPath();
+            context.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+            context.font = `${this.r}px Arial`;
+            context.textAlign = 'center';
+            context.textBaseline = 'middle';
+            const text = this.text.charAt(0);
+            context.fillText(text, this.x, this.y);
+            context.closePath();
+            context.stroke();
+        } else if (this.type === "analog") {
+            context.beginPath();
+            context.arc(this.X, this.Y, this.R, 0, Math.PI * 2);
+            context.closePath();
+            context.stroke();
+
+            context.beginPath();
+            context.fillStyle = "yellow";
+            context.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+            context.fill();
+            context.closePath();
+        } else {
+            console.error('Incorrect type: Use "button" or "analog"');
+            context.restore();
+            return;
+        }
+
+        context.restore();
+    }
+}
+
+// Controller object
+const controller = {
+    canvas: null,
+    context: null,
+    buttons: [],
+
+    // Initialization function to set up the controller
+    init(canvas) {
+        this.canvas = canvas;
+        if (!this.canvas) {
+            console.error("Canvas is not defined.");
+            return;
+        }
+
+        this.context = this.canvas.getContext('2d');
+        if (!this.context) {
+            console.error("Failed to get 2D context from canvas.");
+            return;
+        }
+
+        const rect = this.canvas.getBoundingClientRect();
+
+        // Add touch event listeners
+        this.canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e, rect), { passive: false });
+        this.canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e, rect), { passive: false });
+        this.canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
+    },
 
     draw() {
         if (!this.context) {
@@ -22,70 +89,14 @@ class Button {
             return;
         }
 
-        this.context.save();
-        this.context.globalAlpha = this.opacity;
-
-        this.context.beginPath();
-        this.context.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-
-        if (this.type === 'button') {
-            this.context.font = `${this.r}px Arial`;
-            this.context.textAlign = 'center';
-            this.context.textBaseline = 'middle';
-            this.context.fillText(this.text.charAt(0), this.x, this.y);
-            this.context.closePath();
-            this.context.stroke();
-        } else if (this.type === "analog") {
-            this.context.arc(this.X, this.Y, this.R, 0, Math.PI * 2);
-            this.context.closePath();
-            this.context.stroke();
-
-            this.context.beginPath();
-            this.context.fillStyle = "yellow";
-            this.context.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-            this.context.fill();
-            this.context.closePath();
-        } else {
-            console.error('Incorrect type: Use "button" or "analog"');
-        }
-
-        this.context.restore();
-    }
-}
-
-export const controller = {
-    canvas: null,
-    buttons: [],
-
-    draw() {
-        if (!this.canvas) {
-            console.error("Canvas is not defined.");
-            return;
-        }
-
-        const context = this.canvas.getContext('2d');
-        if (!context) {
-            console.error("Failed to get 2D context from canvas.");
-            return;
-        }
-
-        context.clearRect(0, 0, this.canvas.width, this.canvas.height); // Clear previous frame
-        this.buttons.forEach(button => button.draw());
+        this.context.clearRect(0, 0, this.canvas.width, this.canvas.height); // Clear previous frame
+        this.buttons.forEach(button => button.draw(this.context));
     },
 
-    add(x, y, r, canvas, type, text) {
-        const button = new Button(x, y, r, canvas, type, text);
+    add(x, y, r, type, text) {
+        const button = new Button(x, y, r, this.canvas, type, text);
         this.buttons.push(button);
         return button;
-    },
-
-    update(canvas) {
-        this.canvas = canvas;
-        const rect = canvas.getBoundingClientRect();
-
-        canvas.addEventListener('touchstart', (e) => this.handleTouchStart(e, rect), { passive: false });
-        canvas.addEventListener('touchmove', (e) => this.handleTouchMove(e, rect), { passive: false });
-        canvas.addEventListener('touchend', (e) => this.handleTouchEnd(e), { passive: false });
     },
 
     handleTouchStart(e, rect) {
@@ -154,3 +165,9 @@ export const controller = {
         }
     }
 };
+export default controller;
+// Usage:
+// const myCanvas = document.getElementById('myCanvas');
+// controller.init(myCanvas); // Initialize the controller with the canvas
+// controller.add(100, 100, 20, 'button', 'A');
+// controller.draw();//inside loop 
