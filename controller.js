@@ -15,31 +15,30 @@ class Button {
     }
 
     draw(context) {
+        if (!context) {
+            console.error("Context is undefined or null.");
+            return;
+        }
+
         context.save();
         context.globalAlpha = this.opacity;
 
         if (this.type === 'button') {
-            // Draw the button
             context.beginPath();
             context.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-            
-            // Set font size relative to the radius and draw the text
             context.font = `${this.r}px Arial`;
             context.textAlign = 'center';
             context.textBaseline = 'middle';
-            const text = this.text.charAt(0); // Take only the first letter
+            const text = this.text.charAt(0);
             context.fillText(text, this.x, this.y);
-            
             context.closePath();
             context.stroke();
         } else if (this.type === "analog") {
-            // Draw the analog stick's outer circle
             context.beginPath();
             context.arc(this.X, this.Y, this.R, 0, Math.PI * 2);
             context.closePath();
             context.stroke();
 
-            // Draw the analog stick's inner circle
             context.beginPath();
             context.fillStyle = "yellow";
             context.arc(this.x, this.y, this.r, 0, Math.PI * 2);
@@ -60,14 +59,22 @@ export const controller = {
     buttons: [],
 
     draw: function() {
-        if (this.canvas) {
-            const context = this.canvas.getContext('2d');
-            this.buttons.forEach(button => {
-                button.draw(context);
-            });
-        } else {
-            console.error('Canvas is not defined');
+        // Ensure the canvas and context are defined
+        if (!this.canvas) {
+            console.error("Canvas is not defined.");
+            return;
         }
+
+        const context = this.canvas.getContext('2d');
+        if (!context) {
+            console.error("Failed to get 2D context from canvas.");
+            return;
+        }
+
+        // Draw all buttons using the valid context
+        this.buttons.forEach(button => {
+            button.draw(context);
+        });
     },
 
     add: function(x, y, r, type, text) {
